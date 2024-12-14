@@ -15,7 +15,7 @@ async function authMiddleware(req: Request, next: Function) {
     if (isTokenValid) {
       return next(req);
     } else {
-      return new Response("Unauthorized", { status: 401 });
+      return new Response(JSON.stringify({ status: 401, message: "Unauthorized" }), { status: 401 });
     }
   }
 }
@@ -30,7 +30,7 @@ const requestHandler = async (req: Request) => {
       case "/shows-by-user":
         return getShowsByUserEmail(req)
       default:
-        return new Response("404 Not Found", { status: 404 });
+        return new Response(JSON.stringify({ status: 404, message: "Not Found" }), { status: 404 });
     }
   }
 
@@ -43,11 +43,11 @@ const requestHandler = async (req: Request) => {
       case "/add-show":
         return await addNewShow(req);
       default:
-        return new Response("404 Not Found", { status: 404 });
+        return new Response(JSON.stringify({ status: 404, message: "Not Found" }), { status: 404 });
     }
   }
 
-  return new Response("Method Not Allowed", { status: 405 });
+  return new Response(JSON.stringify({ status: 404, message: "Method Not Allowed" }), { status: 404 });
 }
 
 Bun.serve({
