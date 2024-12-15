@@ -2,6 +2,36 @@ import { signup, login } from "./controllers/auth.controller.ts";
 import { getAllShows, addNewShow, getShowsByUserEmail } from './controllers/shows.controller.ts'
 import { validateToken } from "./utils/token.ts";
 
+async function corsMiddleware(req: Request, next: Function) {
+  const headers: HeadersInit = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+
+  // Handle pre-flight OPTIONS request for CORS
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: headers,
+    });
+  }
+
+
+  const response = await next(req);
+
+  const modifiedResponse = new Response(response.body, {
+    ...response,
+    headers: {
+      ...response.headers,
+      ...headers,
+    },
+  });
+
+  return modifiedResponse;
+}
+
 async function authMiddleware(req: Request, next: Function) {
   const { pathname } = new URL(req.url);
   const ignoreRoutes = ['/signup', '/login']
@@ -52,6 +82,6 @@ const requestHandler = async (req: Request) => {
 
 Bun.serve({
   async fetch(req) {
-    return await authMiddleware(req, requestHandler)
+    return await corsMiddleware(req, (req: Request) => authMiddleware(req, requestHandler));
   },
 });
