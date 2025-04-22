@@ -34,7 +34,7 @@ async function corsMiddleware(req: Request, next: Function) {
 
 async function authMiddleware(req: Request, next: Function) {
   const { pathname } = new URL(req.url);
-  const ignoreRoutes = ['/signup', '/login']
+  const ignoreRoutes = ['/', '/signup', '/login']
   const isBlacklistRoute = ignoreRoutes.includes(pathname)
 
   if (isBlacklistRoute) {
@@ -55,6 +55,8 @@ const requestHandler = async (req: Request) => {
 
   if (req.method === 'GET') {
     switch (url.pathname) {
+      case "/":
+        return new Response(JSON.stringify({ status: 200, message: "Welcome to Shows API" }), { status: 200 });
       case "/all-shows":
         return getAllShows();
       case "/shows-by-user":
