@@ -1,20 +1,12 @@
 import { db } from '../db.ts';
-import { z } from "zod";
 import { getUserEmail } from '../utils/token.ts';
+import { showSchema, showsSchema } from '../schemas/shows.schema.ts';
 
 const createTableItItNotExits = () => {
   db().run("CREATE TABLE IF NOT EXISTS SHOWS (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, rating INTEGER, status TEXT, email TEXT NOT NULL)");
 }
 
-const showSchema = z.object({
-  name: z.string(),
-  rating: z.number().lt(11),
-  status: z.string(),
-  email: z.string().email(),
-});
-
 const getShows = (data: any) => {
-  const showsSchema = z.array(showSchema);
   const shows = showsSchema.safeParse(data);
   if (!shows.success) return new Response(JSON.stringify({ message: shows.error.formErrors.fieldErrors }), { status: 400 });
 

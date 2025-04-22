@@ -1,12 +1,13 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { z } from "zod";
 import { db } from '../db.ts';
+import { newUserSchema, authSchema, UserType } from '../schemas/auth.schema';
 
 const saltRounds = 10;
+const SECRET_KEY: string = process.env.SECRET_KEY || "";
 
 const generateToken = (email: string) => {
-  const token = jwt.sign({ email }, process.env.SECRET_KEY);
+  const token = jwt.sign({ email }, SECRET_KEY);
 
   if (!token) {
     return new Response(JSON.stringify({ message: "Invalid credentials" }), { status: 400 });
@@ -21,11 +22,6 @@ const createTableItItNotExits = () => {
 
 export const signup = async (request: Request) => {
   createTableItItNotExits();
-  const newUserSchema = z.object({
-    name: z.string(),
-    email: z.string().email(),
-    password: z.string(),
-  });
 
   const req = await request.json();
   const parsedRequest = newUserSchema.safeParse(req);
@@ -58,12 +54,10 @@ export const signup = async (request: Request) => {
 
 export const login = async (request: Request) => {
   createTableItItNotExits();
-  const existingUserSchema = z.object({
-    email: z.string().email(),
-    password: z.string(),
-  });
+
   const req = await request.json();
-  const parsedRequest = existingUserSchema.safeParse(req);
+  const parsedRequest = authSchema.safeParse(req);
+
   try {
     const { data, error } = parsedRequest;
 
@@ -74,7 +68,8 @@ export const login = async (request: Request) => {
     const token = generateToken(data.email);
 
     const q = db().query(`SELECT * FROM USERS WHERE email = ?`);
-    const user = q.get(data.email);
+    const user = q.get(data.email) as UserType;
+
     if (!user) return new Response(JSON.stringify({ message: "Invalid credentials" }), { status: 400 });
     const hashedPassword = user.password;
 
